@@ -1,65 +1,48 @@
-# Frame Interpolation for mpv.net
+# SOAP OPERA EFFECT FRAME INTERPOLATION SCRIPT
+# Kris McCann (kris@8pi.ca) 2025
 
-I did not write VapourSynth, and I did not write mpv.net. I did however struggle for several hours to create a working frame interpolation filter for mpv.net.
+import vapoursynth as vs
+import os
 
-## Why?
-To playback video at a smoother higher framerate. This is colloquially known as "the soap opera effect", and if you've never experienced it, it can be jarring...it certainly was the first time I saw it.
+script_directory = os.path.dirname(os.path.abspath(__file__))
+core = vs.core
+core.num_threads = 0
 
-Smoother video playback highlights bad set design, bad acting, bad effects that are otherwise hidden by the layer of "movie magic" that lower framerates provide. For this reason, a lot of people don't like it, but I promise, once you get used to it, it's hard to go back.
+if not hasattr(core,'svp1'):
+    core.std.LoadPlugin(os.path.join(script_directory, "svpflow1_vs64.dll"))
+if not hasattr(core,'svp2'):
+    core.std.LoadPlugin(os.path.join(script_directory, "svpflow2_vs64.dll"))
 
-The smoother playback almost places you in the room with the action, the enhanced realism as previously mentioned can dissolve the movie magic, but once you get used to it, it's hard to go back.
+clip = video_in
 
-I have struggled to configure VapourSynth to interpolate frames to increase smooth higher framerate playback to the best of my ability. This can lead to artifacting in scenes of high motion, and it can be particularly notable when a group of vertical lines (such as blinds) move quickly across the screen. I have tweaked the configuration to the best of my ability, but you are welcome to adjust the parameters to try and achieve better results by editing the file VapourSynth\vapoursynth.vpy and playing with the super_params and analyse_params string variables.
+super_params     = "{scale:{up:0},gpu:1,rc:true, pel:2,hpad:32,vpad:32}"
+analyse_params   = "{main:{search:{coarse:{distance:0,bad:{sad:2000,range:24}},type:4}},penalty:{lambda:2000,lsad:1200,pnew:50},refine:[{thsad:200,thsad:150}]}"
+smoothfps_params = "{gpuid:11,gpu_qn:2,rate:{num:5,den:2},algo:13,mask:{area:100,cover:75,area_sharp:1},scene:{mode:1,blend:false},misc:{linear:false}}"
 
-## How to Install This Script
+src_fps     = container_fps if container_fps>0.1 else 23.976
+stereo_type = 0
 
-If you want to use my entire config, simply download the zip, open Explorer, and type "%APPDATA%" into the address bar. If you already have mpv.net in use, there will be a folder called mpv.net, otherwise, just create it and extract the contents of the zip into it.
+def interpolate(clip):
+    input_um = clip.resize.Point(format=vs.YUV420P10,dither_type="random")
+    input_m = input_um
+    input_m = input_m.std.CropRel(4,4,0,0)
+    input_m8 = input_m.resize.Point(format=vs.YUV420P8)
 
-If you already have mpv.net configured to your liking, simply extract the VapourSynth folder into your %APPDATA%\mpv.net folder and edit mpv.conf and paste the following to the end:
-```
-[vapoursynth]
-vf=vapoursynth="~~/VapourSynth/vapoursynth.vpy"
-```
-You can remove the square brackets tag if you want the filter always on, but my little mini-PC struggles with 4K video, and you might want to choose when to use this filter.
+    super   = core.svp1.Super(input_m8,super_params)
+    vectors = core.svp1.Analyse(super["clip"],super["data"],input_m8,analyse_params)
+    smooth  = core.svp2.SmoothFps(input_m,super["clip"],super["data"],vectors["clip"],vectors["data"],smoothfps_params,src=input_um,fps=src_fps)
+    
+    return smooth
 
-Use a text editor to open VapourSynth\vapoursynth.vpy and replace "YourAccount" in the path with the actual path of your account (which should be visible in Explorer's address bar) for both of the DLLs that the script loads. I have tried using relative directories and environment variables to remove this step, but the filter demands an absolute path.
+if stereo_type == 1:
+    lf = interpolate(core.std.CropRel(clip,0,(int)(clip.width/2),0,0))
+    rf = interpolate(core.std.CropRel(clip,(int)(clip.width/2),0,0,0))
+    smooth = core.std.StackHorizontal([lf, rf])
+elif stereo_type == 2:
+    lf = interpolate(core.std.CropRel(clip,0,0,0,(int)(clip.height/2)))
+    rf = interpolate(core.std.CropRel(clip,0,0,(int)(clip.height/2),0))
+    smooth = core.std.StackVertical([lf, rf])
+else:
+    smooth =  interpolate(clip)
 
-You'll also need to add the following to your Path Environment Variables:
-```
-%APPDATA%\mpv.net\VapourSynth
-```
-
- If you're unsure of how to do this:
-
-- Right click "My Computer" and select "Properties" from the menu
-- Click "Advanced system settings" on the window that comes up
-- Click "Environment variables on the new window"
-- Double click the "Path" environment variable
-- Press the "New" button and paste "%APPDATA%\mpv.net\VapourSynth" into the dialog that pops up. On older versions of windows, you might get the entire path variable in one long semi-colon separated string, if this is the case, just pop a semi-colon on the end and paste the above string to the end of your Path variable
-
-Now you're good to go, just load up a video in mpv.net, and if you've kept my profile or kept the square brackets just right click the screen, and select "vapoursynth" under the "Profiles" sub-menu. Bring up the stats (t if you're using my profile), and you should see after the video file's framerate (e.g. 23.97) the adjusted framerate, which on my setup is around 60 (estimated).
-
-## How to Use my Profile
-
-I have included my entire mpv.net configuration, which is optimized for binge watching with useful display info and on-screen controls, placing as little clutter or complications around your viewing experience as possible. Once the file you are watching is finished, it will automatically play the next file in the folder. Once there are no more files in the folder, and it has finished playing, the app will auto quit, so you don't need to worry about launching and loading then closing, just double click the video you want to start with (with file associations set) and sit back and enjoy, the next episode will start playing at the end of the one you are watching, and the program will auto close when you're finished. You are welcome to use my entire profile, or just use the VapourSynth filter with your own existing config. Because my little mini-PC struggles to use this with 4K video, I have put it behind a profile. Other useful shortcuts I have included are listed below (note, anything that requires a multiple key press does not, so my notation for volume (+/-) is actually just "=" and "-" on your keyboard, because why complicate things.
-
-Shortcuts:
-
-- Menu: right mouse click on video
-- Volume up: +
-- Volume down: -
-- Next frame: w
-- Previous frame: s
-- Next chapter: d
-- Previous chapter: a
-- Next file: >
-- Previous file: <
-- Show on screen stats: t
-- Toggle full screen: esc or double left mouse click on video
-- Quit: q
-- Toggle play/pause: space bar
-- Toggle stats: t (if you bring this up, it will show you the increased frame rate, which should be matched to your PCs output to the monitor
-
-Hopefully this saves a few people the hours of pain and frustration I endured to get this working.
-
-Note: I did not write [VapourSynth](https://github.com/vapoursynth/vapoursynth) or [mpv.net](https://github.com/mpvnet-player/mpv.net) which are both superb projects worthy of your support.
+smooth.set_output()
