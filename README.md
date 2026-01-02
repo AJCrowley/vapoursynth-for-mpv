@@ -19,6 +19,10 @@ Just drop the VapourSynth folder into your mpv profile folder, usually %APPDATA%
 [vapoursynth]
 vf-toggle=@filter:vapoursynth="~~/VapourSynth/vapoursynth.vpy"
 ```
+I've had mixed results with having the VapourSynth folder in the PATH environment variable. If your video crashes out when switching to the vapoursynth profile, add the path to your environment variables, e.g.:
+ ```%PROGRAMFILES%\mpv-hero\portable_config\VapourSynth```
+
+This should clear up any issues.
 Now you're good to go, just load up a video in your preferred mpv distro, and select "vapoursynth" under the "Profiles" sub-menu. Bring up the stats (t default), and you should see after the video file's framerate (e.g. 23.97) the adjusted framerate, and that it's either using or not using the filter.
 
 Hopefully this saves a few people the hours of pain and frustration I endured to get this working.
