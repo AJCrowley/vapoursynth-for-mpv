@@ -9,9 +9,9 @@ core = vs.core
 core.num_threads = 0
 
 if not hasattr(core,'svp1'):
-    core.std.LoadPlugin(os.path.join(script_directory, "svpflow1_vs.dll"))
+    core.std.LoadPlugin(os.path.join(script_directory, "svpflow1_vs64.dll"))
 if not hasattr(core,'svp2'):
-    core.std.LoadPlugin(os.path.join(script_directory, "svpflow2_vs.dll"))
+    core.std.LoadPlugin(os.path.join(script_directory, "svpflow2_vs64.dll"))
 
 clip = video_in
 
