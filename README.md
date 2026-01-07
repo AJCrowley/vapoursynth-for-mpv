@@ -1,7 +1,7 @@
 # Frame Interpolation for mpv
 
 ## Note
-This was originally set up for mpv.net. I've since switched to [mpv-hero](https://github.com/stax76/mpv-hero), as it's a more actively maintained branch that comes with some really neat plugins. I've abstracted the VapourSynth plugin so that no configuration is needed. I've also changed it so that selecting the vapoursynth profile toggles it on/off, as it may not always be desireable to have on.
+This was originally set up for mpv.net. I've since switched to [mpv-hero](https://github.com/stax76/mpv-hero), as it's a more actively maintained branch that comes with some really neat plugins. I've abstracted the VapourSynth plugin so that minimnal configuration is needed. I've also changed it so that selecting the vapoursynth profile toggles it on/off, as it may not always be desireable to have on.
 
 ## Why?
 To playback video at a smoother higher framerate. This is colloquially known as "the soap opera effect", and if you've never experienced it, it can be jarring...it certainly was the first time I saw it.
