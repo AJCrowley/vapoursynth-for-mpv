@@ -410,10 +410,8 @@ def is_package_upgradable(id: str, force: bool) -> bool:
         return (is_package_installed(id) and (lastest_installable is not None) and (installed_packages[id] != 'Unknown') and (installed_packages[id] != lastest_installable['version']))
 
 def get_python_package_name(pkg: MutableMapping) -> str:
-    if "wheelname" in pkg:
-        return pkg["wheelname"].replace(".", "_").replace(" ", "_").replace("(", "_").replace(")", "").replace("_-_", "_")
-    else:
-        return pkg["name"].replace(".", "_").replace(" ", "_").replace("(", "_").replace(")", "").replace("_-_", "_")
+    name = pkg.get("wheelname", pkg["name"])
+    return re.sub(r"[.\s()_\-]+", "_", name).strip("_")
 
 def find_dist_version(pkg: MutableMapping, path: Optional[str]) -> Optional[str]:
     if path is None:
@@ -980,7 +978,7 @@ elif args.operation == 'available':
     detect_installed_packages()
     list_available_packages()
 elif args.operation == 'update':
-    update_package_definition('http://www.vapoursynth.com/vsrepo/vspackages3.zip')
+    update_package_definition('https://www.vapoursynth.com/vsrepo/vspackages3.zip')
 elif args.operation == 'paths':
     print_paths()
 elif args.operation == "genstubs":
