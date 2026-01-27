@@ -1,7 +1,7 @@
 # Frame Interpolation for mpv
 
 ## Note
-This was originally set up for mpv.net. I've since switched to [mpv-hero](https://github.com/stax76/mpv-hero), as it's a more actively maintained branch that comes with some really neat plugins. I've abstracted the VapourSynth plugin so that minimnal configuration is needed. I've also changed it so that selecting the vapoursynth profile toggles it on/off, as it may not always be desireable to have on.
+This was originally set up for mpv.net. I've since switched to [mpv-hero](https://github.com/stax76/mpv-hero), as it's a more actively maintained branch that comes with some really neat plugins. You can download my fork of mpv-hero with VapourSynth integration from [my GitHub](https://github.com/AJCrowley/mpv-hero-vapoursynth)
 
 ## Why?
 To playback video at a smoother higher framerate. This is colloquially known as "the soap opera effect", and if you've never experienced it, it can be jarring...it certainly was the first time I saw it.
@@ -14,16 +14,30 @@ I have struggled to configure VapourSynth to interpolate frames to increase smoo
 
 ## How to Install This Script
 
-Just drop the VapourSynth folder into your mpv profile folder, usually %APPDATA%\mpv or Install Location\portable_config. Add the following lines to the end of your mpv.conf file:
+Just drop the VapourSynth folder into your mpv profile folder, usually %APPDATA%\mpv or Install Location\portable_config. Drop the vapoursynth.lua script into the profile scripts directory. VapourSynth directory should exist alongside the scripts directory, not inside it, so an example file structure:
 ```
-[vapoursynth]
-vf-toggle=@filter:vapoursynth="~~/VapourSynth/vapoursynth.vpy"
+mpv-hero\portable_config\
+        ----scripts
+            -------vapoursynth.lua
+        ----VapourSynth
+        ----input.conf
 ```
+If you are not using a portable config, the base folder would be ```%APPDATA\mpv```.
+
 Add the path to the VapourSynth folder to the Windows PATH environment variable, e.g.:
  ```%PROGRAMFILES%\mpv-hero\portable_config\VapourSynth``` or ```%APPDATA%\mpv\VapourSynth```
 
-Now you're good to go, just load up a video in your preferred mpv distro, and select "vapoursynth" under the "Profiles" sub-menu. Bring up the stats (t default), and you should see after the video file's framerate (e.g. 23.97) the adjusted framerate, and that it's either using or not using the filter.
+The plugin used to run as a profile. However, I have written a Lua script and adapted it to integrate seamlessly into your mpv installation, allowing you to choose which framerates you wish to offer.
+
+To set a framerate, just add a bind to your inputs.conf (as seen in the example file):
+
+```
+keybind1    script-message vapoursynth_set_fps 0  #menu: VapourSynth > Off
+keybind2    script-message vapoursynth_set_fps 120  #menu: VapourSynth > 120fps
+```
+
+Replace the word "keybind" with the key which you wish to bind the command to, and replace the number after ```vapoursynth_set_fps``` to the framerate you wish to run at. There is also the code to add these binds to your menu if you are using a dynamic menu.
 
 Hopefully this saves a few people the hours of pain and frustration I endured to get this working.
 
-Note: I did not write [VapourSynth](https://github.com/vapoursynth/vapoursynth) or [mpv-hero](https://github.com/stax76/mpv-hero) which are both superb projects worthy of your support.
+Note: I did not write [VapourSynth](https://github.com/vapoursynth/vapoursynth) or [mpv-hero](https://github.com/stax76/mpv-hero) which are both superb projects worthy of your support, and [my own fork of mpv-hero](https://github.com/AJCrowley/mpv-hero-vapoursynth) which comes with VapourSynth already baked in.
